@@ -168,10 +168,10 @@ class CorExModel:
         
         proba_preds = self.predict_proba(input_description = input_description, stem = stem)
         softmax_values = softmax(proba_preds)
-        print(softmax_values)
-        #labels = list(map(lambda x : x > .2, softmax_values))
-        pass
-        #return labels
+
+        labels = list(map(lambda x : x > .1, softmax_values))
+        
+        return labels
 
     def score(self):
         '''
@@ -295,18 +295,18 @@ if __name__ == "__main__":
 
     corex_model = CorExModel(
         corpus = corpus, 
-        n_topics = 15,
+        n_topics = 10,
         anchors = anchors,
         anchor_strength=3
     )
 
     corex_model.fit()
     res = corex_model.visualize()
-    res.to_csv('rapport_res.csv', index = False)
+    
     print(res)
 
-    input_text = "Bonjour je voudrais aller voir les riziere et passer du bon temps sur la plage. Nous voulons prendre l'avion de Paris, réserver un chauffeur et un guide."
+    input_text = "Bonjour nous voudrions aller à Bali, voir les rizières et passer du bon temps sur la plage. Nous voulons prendre l'avion de Paris, réserver un chauffeur et un guide. Nous souhaitons des logements de luxe."
 
-    print('\nProbability predictions for the input description :\n\n\t→ {}\n\n\t{}\n'.format(input_text, [round(pred, 4) for pred in corex_model.predict_proba(input_text)]))
-
-    print('\nLabels predictions for the input description :\n\n\t→ {}\n\n\t{}\n'.format(input_text, [round(pred, 4) for pred in corex_model.predict_labels(input_text)]))
+    print('\n• Probability predictions for the input description :\n\n\t→ {}\n\n\t{}'.format(input_text, [round(pred, 4) for pred in corex_model.predict_proba(input_text)]))
+    
+    print('\n• Labels predictions for the input description :\n\n\t{}\n'.format(corex_model.predict_labels(input_text)))

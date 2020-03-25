@@ -55,7 +55,6 @@ class TopicModelingClassifier:
                 
             Parameters:
             
-                - destination (String) : the destination the classifier will be based on (English name for now).
                 - corpus (List[String]) : the list of raw descriptions.
                 - n_topics (Integer) : the default number of topics you're looking for. The parameter could be changing with the @tune() method.
                 - anchors (List[String] | List[List[String]]) : chosen anchors for the CorEx models. Anchors should be specific to destinations or at least to clusters of destinations.
@@ -120,7 +119,7 @@ class TopicModelingClassifier:
             '''
         
             if not self.check_is_fitted() :
-        
+            
                 self.vectorizer = self.vectorizer.fit(self.train_data)
                 tfidf = self.vectorizer.transform(self.train_data)
                 vocab = self.vectorizer.get_feature_names()
@@ -151,14 +150,14 @@ class TopicModelingClassifier:
 
             if display_mode == 'proba' :
                 if dataframe_mode :
-                    return pd.DataFrame(self.model.p_y_given_x, columns = ['Topic #%i'%i for i in range(1, self.n_topics + 1)], index = ['Desc #%i'%i for i in range(1, len(self.train_data) + 1)])
+                    return pd.DataFrame(self.model.p_y_given_x, columns = ['Topic #%i'%i for i in range(1, self.n_topics + 1)], index = ['Desc %i'%i for i in range(1, len(self.train_data) + 1)])
                 
                 else : 
                     return self.model.p_y_given_x
 
             else :
                 if dataframe_mode :
-                    return pd.DataFrame(self.model.labels, columns = ['Topic #%i'%i for i in range(1, self.n_topics + 1)], index = ['Desc #%i'%i for i in range(1, len(self.train_data) + 1)])
+                    return pd.DataFrame(self.model.labels, columns = ['Topic #%i'%i for i in range(1, self.n_topics + 1)], index = ['Desc %i'%i for i in range(1, len(self.train_data) + 1)])
                 
                 else :
                     return self.model.labels
@@ -180,10 +179,32 @@ class TopicModelingClassifier:
             
             processed_input_description = self.process_input(input_description = input_description, stem = stem)
             vectorized_input_description = self.vectorizer.transform([processed_input_description])
-            preds = list(self.model.predict_proba(vectorized_input_description)[0][0])
+            proba_preds = list(self.model.predict_proba(vectorized_input_description)[0][0])
 
-            return preds
+            return proba_preds
         
+        def predict_labels(self, input_description, stem = False):
+            '''
+            Description :
+
+                Predict, for each topic, the attributed topics given their probabilities of membership.
+
+            Parameters : 
+
+                - input_description (String) : The input description we want to predict topic memberships.
+                - stem (String) : Specify if stemming must be applied while processing the input_description.
+            '''
+
+            if not self.check_is_fitted() :
+                raise EnvironmentError("Your model has not been trained yet ! Do it first")
+            
+            proba_preds = self.predict_proba(input_description = input_description, stem = stem)
+            softmax_values = softmax(proba_preds)
+
+            labels = list(map(lambda x : x > .1, softmax_values))
+            
+            return labels
+
         def score(self):
             '''
             Description :
@@ -250,7 +271,7 @@ class TopicModelingClassifier:
             else :
                 return ' '.join(tokens)
 
-        def process_corpus(self, stem = False, undesired_words = []):
+        def process_corpus(self, stem = False):
             '''
                 Description : 
 
@@ -263,7 +284,7 @@ class TopicModelingClassifier:
 
             res = []
             for description in self.corpus :
-                processed_description = self.process_input(input_description = description, stem = stem, undesired_words = undesired_words)
+                processed_description = self.process_input(input_description = description, stem = stem)
                 if not isnan(processed_description): 
                     res.append(processed_description)
 
@@ -274,7 +295,7 @@ class TopicModelingClassifier:
             Description :
 
                 Check if the model has already been fitted
-                
+
             Parameters :
 
                 - None
