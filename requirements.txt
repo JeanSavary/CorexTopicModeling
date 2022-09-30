@@ -1,6 +1,6 @@
 corextopic==1.0.5
 FrenchLefffLemmatizer==0.3
-joblib==0.14.1
+joblib==1.2.0
 nltk==3.4.5
 numpy==1.18.1
 pandas==1.0.1
